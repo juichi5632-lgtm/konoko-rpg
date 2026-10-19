@@ -1,0 +1,76 @@
+import arcade
+
+# 画面設定
+SCREEN_WIDTH = 480
+SCREEN_HEIGHT = 320
+SCREEN_TITLE = "きのこの森 ～つながる胞子～"
+
+# 菌類のメッセージ
+KNOWLEDGE = {
+    1: "🍄 キノコは植物ではなく菌類。実は動物に近いグループなんです！",
+    2: "🍄 地上に見えるキノコはほんの一部。本体は地下に広がる菌糸です。",
+    3: "🍄 木とキノコは助け合って生きています。共生の関係です。",
+    4: "🍄 毒は悪者じゃない。森を守る大事な役割なんです。",
+    5: "🍄 胞子は種ではない。新しい命の出発点なんです。",
+}
+
+class Player(arcade.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.texture = arcade.make_texture((24, 24), (139, 90, 43))
+        self.center_x = SCREEN_WIDTH // 2
+        self.center_y = SCREEN_HEIGHT // 2
+        self.speed = 3
+
+    def update(self):
+        dx, dy = 0, 0
+        keys = arcade.get_keyboard()
+        if keys[arcade.key.LEFT]:  dx -= self.speed
+        if keys[arcade.key.RIGHT]: dx += self.speed
+        if keys[arcade.key.UP]:    dy += self.speed
+        if keys[arcade.key.DOWN]:  dy -= self.speed
+        self.center_x = max(12, min(SCREEN_WIDTH - 12, self.center_x + dx))
+        self.center_y = max(12, min(SCREEN_HEIGHT - 12, self.center_y + dy))
+
+class GameView(arcade.View):
+    def __init__(self):
+        super().__init__()
+        self.player = Player()
+        self.map_id = 1
+        self.message = "森にようこそ！Zキーで調べる 🍄"
+
+    def on_show(self):
+        arcade.set_background_color((30, 60, 40))
+
+    def on_draw(self):
+        self.clear()
+        # 地面の模様
+        for x in range(0, SCREEN_WIDTH, 32):
+            for y in range(0, SCREEN_HEIGHT, 32):
+                arcade.draw_rectangle_outline(x+16, y+16, 30, 30, (50, 90, 60))
+        # 菌糸の線
+        for i in range(8):
+            arcade.draw_line(0, 40*i, SCREEN_WIDTH, 40*i+20, (200, 200, 200, 40), 1)
+        # プレイヤー
+        self.player.draw()
+        # メッセージ枠
+        arcade.draw_rectangle_filled(SCREEN_WIDTH//2, 30, SCREEN_WIDTH-10, 50, (20, 40, 30, 200))
+        arcade.draw_text(self.message, 20, 15, (220, 220, 180), 11)
+
+    def on_update(self, delta_time):
+        self.player.update()
+
+    def on_key_press(self, key, _mod):
+        if key == arcade.key.Z:
+            self.map_id = (self.map_id % 5) + 1
+            self.message = KNOWLEDGE[self.map_id]
+        if key == arcade.key.X:
+            self.message = "操作：矢印=移動 Z=メッセージ切り替え"
+
+def main():
+    window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+    window.show_view(GameView())
+    arcade.run()
+
+if __name__ == "__main__":
+    main()
